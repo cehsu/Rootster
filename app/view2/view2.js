@@ -17,6 +17,8 @@ var service;
 var myUuid;
 var placemarkers = {};
 $scope.submit;
+$scope.place = {};
+
 
   function initMap() {
 
@@ -79,28 +81,29 @@ $scope.submit;
 
   var autocompleteForm = new google.maps.places.Autocomplete(document.getElementById("place"));
   google.maps.event.addListener(autocompleteForm, 'place_changed', function() {
-      var place = autocompleteForm.getPlace();
+      $scope.place = autocompleteForm.getPlace();
+      $scope.$apply();
       console.log('$scope.place.name', $scope.place.name);
-      console.log('place', place);
-      var lat = place.geometry.location.lat();
-      var lng = place.geometry.location.lng();
+      // console.log('place', place);
+      var lat = $scope.place.geometry.location.lat();
+      var lng = $scope.place.geometry.location.lng();
       console.log('lat', lat);
       console.log('lng', lng);
 
       var infowindow = new google.maps.InfoWindow({
-          content: place.name
+          content: $scope.place.name
         });
-      placemarkers[place.name] = new google.maps.Marker({
+      placemarkers[$scope.place.name] = new google.maps.Marker({
           position: new google.maps.LatLng(lat, lng),
           map: map,
           icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
       });
-      $scope.place = place;
-      placemarkers[place.name].addListener('click', function() {
-    infowindow.open(map, placemarkers[place.name]);
+      // $scope.place = place;
+      placemarkers[$scope.place.name].addListener('click', function() {
+    infowindow.open(map, placemarkers[$scope.place.name]);
   });
-      console.log('marker created', placemarkers[place.name]);
-      $scope.$apply();
+      console.log('marker created', placemarkers[$scope.place.name]);
+
   });
 
   angular.element($window).on('resize', function () {
