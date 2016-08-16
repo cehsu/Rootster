@@ -1,0 +1,11 @@
+<div ng-show="firebaseUser">
+
+    <p>Hello, {{ firebaseUser.displayName }}</p>
+    <md-button class="md-raised">Hello There!</md-button>
+    <button ng-click="auth.$signOut()">Sign Out</button>
+  </div>
+  <div ng-hide="firebaseUser">
+    <md-button class="md-raised">Hello There!</md-button>
+    <p>Welcome, please sign in.</p>
+    <button ng-click="auth.$signInWithPopup('google')">Sign In With Google</button>
+  </div>

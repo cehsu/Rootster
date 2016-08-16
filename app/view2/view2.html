@@ -1,0 +1,25 @@
+<div ng-show="placesRef">
+  <ul>
+    <li ng-repeat="place in placesRef">
+      <!-- edit a message -->
+      <input ng-model="place.name" ng-change="placesRef.$save(place)" />
+      <!-- delete a message -->
+      <button ng-click="placesRef.$remove(place)">Delete Errand</button>
+    </li>
+  </ul>
+</div>
+<div ng-hide="placesRef">
+    <p>Add an errand to your route.</p>
+</div>
+
+<div class="container">
+  <form ng-submit="addPlace()">
+    <input id="place" type="text" ng-model="place.name" placeholder="Errand" autocomplete="off">
+    <input id="duration" type="text" ng-model="place.duration" placeholder="Duration" autocomplete="off">
+    <button type="submit">Add Errand</button>
+  </form>
+    <form ng-submit="getRoute()">
+      <button type="submit">Route it</button>
+    </form>
+    <div ng-if="render" id="map"></div>
+</div>

@@ -1,0 +1,12 @@
+logs/*
+!.gitkeep
+# Config Files
+configFile.json
+app/configFile.js
+
+# Runtime data
+node_modules/
+bower_components/
+tmp
+.DS_Store
+.idea
