@@ -18,10 +18,22 @@ var myUuid;
 var placemarkers = {};
 $scope.submit;
 $scope.place = {};
+$scope.markerLoading;
+
+var markersRef = firebase.database().ref().child('maps/' + mapId);
+var placesRef = firebase.database().ref().child('places/' + mapId);
+  // download the data into a local object
+  var syncMarkers = $firebaseObject(markersRef);
+  $scope.placesRef = $firebaseArray(placesRef);
+  // synchronize the object with a three-way data binding
+  // click on `index.html` above to see it used in the DOM!
+  syncMarkers.$bindTo($scope, "markersRef");
+  // syncPlaces.$bindTo($scope, "placesRef");
+
 
 
   function initMap() {
-
+    //create map
                 var latlng = new google.maps.LatLng(35.7042995, 139.7597564);
                 var myOptions = {
                     zoom: 15,
@@ -33,7 +45,61 @@ $scope.place = {};
                 directionsDisplay.setOptions( { suppressMarkers: true } );
                 map = new google.maps.Map(document.getElementById("map"), myOptions);
                 directionsDisplay.setMap(map);
-
+    //populate map with existing todo markers
+    $scope.markerLoading = function(){
+    console.log('marker preloading');
+    console.log('$scope.placesRef');
+    console.log($scope.placesRef);
+    console.log('$scope.placesRef.length');
+    console.log($scope.placesRef.length);
+    for(var markerpin in placemarkers){
+      var included = false;
+      var looprun = false;
+      $scope.placesRef.$loaded()
+      .then(function(data){
+        looprun = true;
+                  angular.forEach(data, function(markerPlace, i){
+                  if(markerPlace.name === markerpin.name){
+                    included = true;
+                  }
+                // var stringnow = JSON.stringify($scope.placesRef[todo.name]);
+                //     console.log('marker created', stringnow);
+              });
+            });
+        if(!included || !looprun){
+          placemarkers[markerpin].setMap(null);
+        }
+    }
+    $scope.placesRef.$loaded()
+    .then(function(data){
+                angular.forEach(data, function(markerPlace, i){
+                  console.log('marker preloading number', i);
+                  console.log(markerPlace);
+                  var infowindow = new google.maps.InfoWindow({
+                      content: markerPlace.name
+                    });
+                    console.log(markerPlace.lat);
+                    var latnow = +markerPlace.lat;
+                    console.log(latnow);
+                    console.log(markerPlace.lng);
+                    var lngnow = +markerPlace.lng;
+                    console.log(lngnow);
+                  placemarkers[markerPlace.name] = new google.maps.Marker({
+                      position: new google.maps.LatLng(latnow, lngnow),
+                      map: map,
+                      icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                  });
+    // $scope.place = place;
+                  placemarkers[markerPlace.name].addListener('click', function() {
+                infowindow.open(map, placemarkers[markerPlace.name]);
+              });
+              // var stringnow = JSON.stringify($scope.placesRef[todo.name]);
+              //     console.log('marker created', stringnow);
+            });
+          });
+              }
+              $scope.markerLoading();
+    //create routing function
                 $scope.getRoute = function() {
                   calculateAndDisplayRoute(directionsService, directionsDisplay);
                 };
@@ -54,7 +120,9 @@ $scope.place = {};
                       }
                       console.log('waypts', waypts);
                       var lat = markers[myUuid].position.lat();
+                      console.log('lat', lat);
                       var lng = markers[myUuid].position.lng();
+                      console.log('lng', lng);
                       var requestRoute = {
                         origin: new google.maps.LatLng(lat, lng),
                         destination: new google.maps.LatLng(lat, lng),
@@ -85,8 +153,8 @@ $scope.place = {};
       $scope.$apply();
       console.log('$scope.place.name', $scope.place.name);
       // console.log('place', place);
-      var lat = $scope.place.geometry.location.lat();
-      var lng = $scope.place.geometry.location.lng();
+      var lat = $scope.place.lat = $scope.place.geometry.location.lat();
+      var lng = $scope.place.lng = $scope.place.geometry.location.lng();
       console.log('lat', lat);
       console.log('lng', lng);
 
@@ -149,22 +217,26 @@ $scope.place = {};
   // Firebase
   // var firebase = new Firebase("https://rootster-665cb.firebaseio.com/");
 
-  var markersRef = firebase.database().ref().child('maps/' + mapId);
-  var placesRef = firebase.database().ref().child('places/' + mapId);
-    // download the data into a local object
-    var syncMarkers = $firebaseObject(markersRef);
-    $scope.placesRef = $firebaseArray(placesRef);
-    // synchronize the object with a three-way data binding
-    // click on `index.html` above to see it used in the DOM!
-    syncMarkers.$bindTo($scope, "markersRef");
-    // syncPlaces.$bindTo($scope, "placesRef");
+  // var markersRef = firebase.database().ref().child('maps/' + mapId);
+  // var placesRef = firebase.database().ref().child('places/' + mapId);
+  //   // download the data into a local object
+  //   var syncMarkers = $firebaseObject(markersRef);
+  //   $scope.placesRef = $firebaseArray(placesRef);
+  //   // synchronize the object with a three-way data binding
+  //   // click on `index.html` above to see it used in the DOM!
+  //   syncMarkers.$bindTo($scope, "markersRef");
+  //   // syncPlaces.$bindTo($scope, "placesRef");
 
     // add new items to the array
     // the message is automatically added to our Firebase database!
     $scope.addPlace = function() {
       $scope.placesRef.$add({
         name: $scope.place.name,
-        duration: $scope.place.duration
+        duration: $scope.place.duration,
+        open: $scope.place.opening_hours.open_now,
+        address: $scope.place.formatted_address,
+        lat: $scope.place.geometry.location.lat(),
+        lng: $scope.place.geometry.location.lng()
       });
     };
 
@@ -257,6 +329,7 @@ $scope.place = {};
   })
 
   $scope.placesRef.$watch(function(event) {
+    $scope.markerLoading();
   console.log('errands updated', event);
 });
 
