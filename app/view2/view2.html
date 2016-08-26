@@ -7,6 +7,9 @@
       <button ng-click="placesRef.$remove(place)">Delete Errand</button>
     </li>
   </ul>
+  <form ng-submit="getRoute()">
+    <button type="submit">Route it</button>
+  </form>
 </div>
 <div ng-hide="placesRef">
     <p>Add an errand to your route.</p>
@@ -18,8 +21,6 @@
     <input id="duration" type="text" ng-model="place.duration" placeholder="Duration" autocomplete="off">
     <button type="submit">Add Errand</button>
   </form>
-    <form ng-submit="getRoute()">
-      <button type="submit">Route it</button>
-    </form>
+
     <div ng-if="render" id="map"></div>
 </div>

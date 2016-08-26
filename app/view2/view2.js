@@ -10,7 +10,7 @@ angular.module('myApp.view2', ['firebase','ngRoute','ngMaterial', 'myApp.config'
 
   }).when('/view2/:params', {templateUrl: 'view2/view2.html', controller: 'View2Ctrl'});
 }])
-.controller('View2Ctrl', ['$scope', '$rootScope', '$window', '$timeout', '$route', '$routeParams', '$firebaseRef','$firebaseObject', '$firebaseArray','GOOGLEMAPS_URL', function($scope, $rootScope, $window, $timeout, $route, $routeParams, $firebaseRef, $firebaseObject, $firebaseArray, GOOGLEMAPS_URL) {
+.controller('View2Ctrl', ['$scope', '$rootScope', '$window', '$timeout', '$route', '$routeParams', '$firebaseRef','$firebaseObject', '$firebaseArray','GOOGLEMAPS_URL','$mdToast', function($scope, $rootScope, $window, $timeout, $route, $routeParams, $firebaseRef, $firebaseObject, $firebaseArray, GOOGLEMAPS_URL,$mdToast) {
 $scope.render = true;
 var map;
 var service;
@@ -101,6 +101,7 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
               $scope.markerLoading();
     //create routing function
                 $scope.getRoute = function() {
+                  //check for conflicts
                   calculateAndDisplayRoute(directionsService, directionsDisplay);
                 };
 
@@ -151,26 +152,14 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
   google.maps.event.addListener(autocompleteForm, 'place_changed', function() {
       $scope.place = autocompleteForm.getPlace();
       $scope.$apply();
-      console.log('$scope.place.name', $scope.place.name);
-      // console.log('place', place);
-      var lat = $scope.place.lat = $scope.place.geometry.location.lat();
-      var lng = $scope.place.lng = $scope.place.geometry.location.lng();
-      console.log('lat', lat);
-      console.log('lng', lng);
-
-      var infowindow = new google.maps.InfoWindow({
-          content: $scope.place.name
-        });
-      placemarkers[$scope.place.name] = new google.maps.Marker({
-          position: new google.maps.LatLng(lat, lng),
-          map: map,
-          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-      });
-      // $scope.place = place;
-      placemarkers[$scope.place.name].addListener('click', function() {
-    infowindow.open(map, placemarkers[$scope.place.name]);
-  });
-      console.log('marker created', placemarkers[$scope.place.name]);
+      if(!$scope.place.opening_hours.open_now){
+        console.log('toast should show');
+        $mdToast.show(
+          $mdToast.simple('Oops! That business does not appear to be open at the moment.')
+          .position('left bottom')
+          .hideDelay(3000)
+        );
+      }
 
   });
 
@@ -230,6 +219,26 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
     // add new items to the array
     // the message is automatically added to our Firebase database!
     $scope.addPlace = function() {
+      console.log('$scope.place.name', $scope.place.name);
+      // console.log('place', place);
+      var lat = $scope.place.lat = $scope.place.geometry.location.lat();
+      var lng = $scope.place.lng = $scope.place.geometry.location.lng();
+      console.log('lat', lat);
+      console.log('lng', lng);
+
+      var infowindow = new google.maps.InfoWindow({
+          content: $scope.place.name
+        });
+      placemarkers[$scope.place.name] = new google.maps.Marker({
+          position: new google.maps.LatLng(lat, lng),
+          map: map,
+          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+      });
+      // $scope.place = place;
+      placemarkers[$scope.place.name].addListener('click', function() {
+    infowindow.open(map, placemarkers[$scope.place.name]);
+  });
+      console.log('marker created', placemarkers[$scope.place.name]);
       $scope.placesRef.$add({
         name: $scope.place.name,
         duration: $scope.place.duration,
