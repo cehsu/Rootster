@@ -68,6 +68,7 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
             });
         if(!included || !looprun){
           placemarkers[markerpin].setMap(null);
+          $scope.resetRoute();
         }
     }
     $scope.placesRef.$loaded()
@@ -103,6 +104,9 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
                 $scope.getRoute = function() {
                   //check for conflicts
                   calculateAndDisplayRoute(directionsService, directionsDisplay);
+                };
+                $scope.resetRoute = function(){
+                  directionsDisplay.setDirections({routes: []});
                 };
 
               function calculateAndDisplayRoute(directionsService, directionsDisplay) {
