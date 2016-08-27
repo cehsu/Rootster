@@ -86,6 +86,7 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
               });
             });
         if(!included || !looprun){
+          //remove old markers
           placemarkers[markerpin].setMap(null);
           $scope.resetRoute();
         }
@@ -231,15 +232,11 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
     // add new items to the array
     // the message is automatically added to our Firebase database!
     $scope.removePlace = function(placetoRemove){
+      // placemarkers[placetoRemove.name].setMap(null);
       $scope.placesRef.$remove(placetoRemove);
       $scope.markerLoading();
       $scope.resetRoute();
-      console.log('placemarkers', placemarkers);
-      placemarkers[placetoRemove.name].setMap(null);
-      delete placemarkers[placetoRemove.name];
       console.log('placetoRemove.name', placetoRemove.name);
-      console.log('placemarkers', placemarkers);
-
     }
 
     $scope.addPlace = function() {
@@ -295,7 +292,6 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
 
   function removePoint(uuid) {
     markers[uuid].setMap(null);
-    markers[uuid] = null;
   }
 
   function updatePoint(uuid, position) {
