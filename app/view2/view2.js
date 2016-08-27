@@ -10,8 +10,24 @@ angular.module('myApp.view2', ['firebase','ngRoute','ngMaterial', 'myApp.config'
 
   }).when('/view2/:params', {templateUrl: 'view2/view2.html', controller: 'View2Ctrl'});
 }])
-.controller('View2Ctrl', ['$scope', '$rootScope', '$window', '$timeout', '$route', '$routeParams', '$firebaseRef','$firebaseObject', '$firebaseArray','GOOGLEMAPS_URL','$mdToast', function($scope, $rootScope, $window, $timeout, $route, $routeParams, $firebaseRef, $firebaseObject, $firebaseArray, GOOGLEMAPS_URL,$mdToast) {
+.controller('View2Ctrl', ['$scope', '$rootScope', '$window', '$timeout', '$route', '$routeParams', '$firebaseRef','$firebaseObject', '$firebaseArray','GOOGLEMAPS_URL','$mdToast', 'RouteName', function($scope, $rootScope, $window, $timeout, $route, $routeParams, $firebaseRef, $firebaseObject, $firebaseArray, GOOGLEMAPS_URL, $mdToast, RouteName) {
 $scope.render = true;
+// Custom routing
+var mapId = location.hash.replace(/^#!\/view2/, '');
+  console.log('mapId', mapId);
+  console.log('$routeParams', $routeParams);
+if (!mapId) {
+    console.log('in stupid routing');
+  mapId = RouteName.getRouteName() || (Math.random() + 1).toString(36).substring(2, 12);
+  // var new
+  console.log(location.hash);
+  console.log(location.mapId);
+  console.log('mapId');
+  console.log(mapId);
+  console.log('$routeParams', $routeParams);
+  location.hash = location.hash + "/" + mapId;
+
+};
 var map;
 var service;
 var myUuid;
@@ -19,6 +35,9 @@ var placemarkers = {};
 $scope.submit;
 $scope.place = {};
 $scope.markerLoading;
+$scope.$watch(function () { return RouteName.getRouteName(); }, function (newValue, oldValue) {
+        if (newValue !== oldValue) $scope.RouteName = newValue;
+    });
 
 var markersRef = firebase.database().ref().child('maps/' + mapId);
 var placesRef = firebase.database().ref().child('places/' + mapId);
@@ -41,10 +60,10 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 };
                 var directionsService = new google.maps.DirectionsService;
-                var directionsDisplay = new google.maps.DirectionsRenderer;
-                directionsDisplay.setOptions( { suppressMarkers: true } );
+                $scope.directionsDisplay = new google.maps.DirectionsRenderer;
+                $scope.directionsDisplay.setOptions( { suppressMarkers: true } );
                 map = new google.maps.Map(document.getElementById("map"), myOptions);
-                directionsDisplay.setMap(map);
+                $scope.directionsDisplay.setMap(map);
     //populate map with existing todo markers
     $scope.markerLoading = function(){
     console.log('marker preloading');
@@ -103,13 +122,13 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
     //create routing function
                 $scope.getRoute = function() {
                   //check for conflicts
-                  calculateAndDisplayRoute(directionsService, directionsDisplay);
+                  calculateAndDisplayRoute(directionsService, $scope.directionsDisplay);
                 };
                 $scope.resetRoute = function(){
-                  directionsDisplay.setDirections({routes: []});
+                  $scope.directionsDisplay.setDirections({routes: []});
                 };
 
-              function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+              function calculateAndDisplayRoute(service, display) {
                       var waypts = [];
                       var waypointArray = placemarkers;
                       console.log('placemarkers', placemarkers);
@@ -136,36 +155,38 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
                         travelMode: 'WALKING'
                       };
                       console.log(requestRoute);
-                      directionsService.route(requestRoute, function(response, status) {
+                      service.route(requestRoute, function(response, status) {
                         if (status === 'OK') {
                           console.log('response', response);
-                          directionsDisplay.setDirections(response);
+                          display.setDirections(response);
                           console.log('yay')
                         } else {
                           window.alert('Directions request failed due to ' + status);
                         }
                       });
                     }
+                    $scope.autocompleteForm = new google.maps.places.Autocomplete(document.getElementById("place"));
+                    google.maps.event.addListener($scope.autocompleteForm, 'place_changed', function() {
+                      console.log('autocompleteform place changed');
+                        $scope.place = $scope.autocompleteForm.getPlace();
+                        $scope.$apply();
+                        if(!$scope.place.opening_hours.open_now){
+                          console.log('toast should show');
+                          $mdToast.show(
+                            $mdToast.simple('Oops! That business does not appear to be open at the moment.')
+                            .position('left bottom')
+                            .hideDelay(3000)
+                          );
+                        }
+
+                    });
                   }
 
   $timeout(function(){
     initMap();
   });
 
-  var autocompleteForm = new google.maps.places.Autocomplete(document.getElementById("place"));
-  google.maps.event.addListener(autocompleteForm, 'place_changed', function() {
-      $scope.place = autocompleteForm.getPlace();
-      $scope.$apply();
-      if(!$scope.place.opening_hours.open_now){
-        console.log('toast should show');
-        $mdToast.show(
-          $mdToast.simple('Oops! That business does not appear to be open at the moment.')
-          .position('left bottom')
-          .hideDelay(3000)
-        );
-      }
 
-  });
 
   angular.element($window).on('resize', function () {
       console.log("resizing");
@@ -192,20 +213,7 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
 
 // //   $scope.map = { center: { latitude: 45, longitude: -73 }, zoom: 8 };
 
-  // Stupid routing
-  var mapId = location.hash.replace(/^#!\/view2/, '');
-    console.log('mapId', mapId);
-    console.log('$routeParams', $routeParams);
-  if (!mapId) {
-      console.log('in stupid routing');
-    mapId = (Math.random() + 1).toString(36).substring(2, 12);
-    // var new
-    console.log(location.hash);
-    console.log(location.mapId);
-    console.log('$routeParams', $routeParams);
-    location.hash = location.hash + "/" + mapId;
 
-  }
 
   // Firebase
   // var firebase = new Firebase("https://rootster-665cb.firebaseio.com/");
@@ -222,6 +230,18 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
 
     // add new items to the array
     // the message is automatically added to our Firebase database!
+    $scope.removePlace = function(placetoRemove){
+      $scope.placesRef.$remove(placetoRemove);
+      $scope.markerLoading();
+      $scope.resetRoute();
+      console.log('placemarkers', placemarkers);
+      placemarkers[placetoRemove.name].setMap(null);
+      delete placemarkers[placetoRemove.name];
+      console.log('placetoRemove.name', placetoRemove.name);
+      console.log('placemarkers', placemarkers);
+
+    }
+
     $scope.addPlace = function() {
       console.log('$scope.place.name', $scope.place.name);
       // console.log('place', place);
@@ -245,12 +265,14 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
       console.log('marker created', placemarkers[$scope.place.name]);
       $scope.placesRef.$add({
         name: $scope.place.name,
-        duration: $scope.place.duration,
+        // duration: $scope.place.duration,
         open: $scope.place.opening_hours.open_now,
         address: $scope.place.formatted_address,
         lat: $scope.place.geometry.location.lat(),
         lng: $scope.place.geometry.location.lng()
       });
+      $scope.markerLoading();
+    console.log('errands updated');
     };
 
   var markers = {};
@@ -267,7 +289,7 @@ var placesRef = firebase.database().ref().child('places/' + mapId);
     });
 
     markers[uuid] = marker;
-
+    console.log(marker);
     map.panTo(marker.position);
   }
 

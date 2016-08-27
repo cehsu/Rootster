@@ -1,10 +1,14 @@
 <div ng-show="placesRef">
-  <ul>
+  <h3>Route Waypoints</h3>
+  <ul style="list-style: none;">
     <li ng-repeat="place in placesRef">
       <!-- edit a message -->
-      <input ng-model="place.name" ng-change="placesRef.$save(place)" />
-      <!-- delete a message -->
-      <button ng-click="placesRef.$remove(place)">Delete Errand</button>
+      <div md-whiteframe="3">
+        <h3>{{place.name}}</h3>
+        <p>{{place.address}}</p>
+        <!-- delete a message -->
+        <button ng-click="removePlace(place)">Delete Errand</button>
+      </div>
     </li>
   </ul>
   <form ng-submit="getRoute()">
@@ -18,7 +22,7 @@
 <div class="container">
   <form ng-submit="addPlace()">
     <input id="place" type="text" ng-model="place.name" placeholder="Errand" autocomplete="off">
-    <input id="duration" type="text" ng-model="place.duration" placeholder="Duration" autocomplete="off">
+    <!-- <input id="duration" type="text" ng-model="place.duration" placeholder="Duration" autocomplete="off"> -->
     <button type="submit">Add Errand</button>
   </form>
 

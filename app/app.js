@@ -10,7 +10,7 @@ angular.module('myApp', [
   'myApp.view2',
   'myApp.version'
 ]).
-config(['$locationProvider', '$routeProvider', '$firebaseRefProvider', 'FIREBASE_URL', 'FIREBASE_AUTHDOMAIN', 'FIREBASE_APIKEY', function($locationProvider, $routeProvider, $firebaseRefProvider, FIREBASE_URL, FIREBASE_AUTHDOMAIN, FIREBASE_APIKEY) {
+config(['$locationProvider', '$routeProvider', '$firebaseRefProvider', 'FIREBASE_URL', 'FIREBASE_AUTHDOMAIN', 'FIREBASE_APIKEY', '$mdThemingProvider', function($locationProvider, $routeProvider, $firebaseRefProvider, FIREBASE_URL, FIREBASE_AUTHDOMAIN, FIREBASE_APIKEY, $mdThemingProvider) {
   var config = {
     apiKey: FIREBASE_APIKEY,
     authDomain: FIREBASE_AUTHDOMAIN,
@@ -29,4 +29,33 @@ config(['$locationProvider', '$routeProvider', '$firebaseRefProvider', 'FIREBASE
 // });
 
   $routeProvider.otherwise({redirectTo: '/view1'});
-}]);
+  var customBlueMap = 		$mdThemingProvider.extendPalette('light-blue', {
+  'contrastDefaultColor': 'light',
+  'contrastDarkColors': ['50'],
+  '50': 'ffffff'
+});
+$mdThemingProvider.definePalette('customBlue', customBlueMap);
+$mdThemingProvider.theme('default')
+  .primaryPalette('customBlue', {
+    'default': '500',
+    'hue-1': '50'
+  })
+  .accentPalette('pink');
+$mdThemingProvider.theme('input', 'default')
+      .primaryPalette('grey')
+}]).
+factory('RouteName', function () {
+
+    var data = {
+        RouteName: ''
+    };
+
+    return {
+        getRouteName: function () {
+            return data.RouteName;
+        },
+        setRouteName: function (customName) {
+            data.RouteName = customName;
+        }
+    };
+});;

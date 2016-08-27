@@ -1,11 +1,18 @@
 <div ng-show="firebaseUser">
 
     <p>Hello, {{ firebaseUser.displayName }}</p>
-    <md-button class="md-raised">Hello There!</md-button>
-    <button ng-click="auth.$signOut()">Sign Out</button>
+    <md-button class="md-raised" ng-click="auth.$signOut()">Sign Out</md-button>
   </div>
   <div ng-hide="firebaseUser">
-    <md-button class="md-raised">Hello There!</md-button>
-    <p>Welcome, please sign in.</p>
-    <button ng-click="auth.$signInWithPopup('google')">Sign In With Google</button>
+
+    <md-button class="md-raised" ng-click="auth.$signInWithPopup('google')">Sign In With Google</md-button>
+  </div>
+  <div>
+    <p>Would you care to blaze a new trail?</p>
+
+    <md-input-container md-theme="input" flex>
+          <label>Route Name</label>
+          <input ng-model="RouteName" placeholder="enter route title" ng-model-options="{debounce: 1000}" ng-change="updateRouteName()" >
+    </md-input-container>
+
   </div>
